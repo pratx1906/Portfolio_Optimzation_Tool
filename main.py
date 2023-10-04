@@ -18,7 +18,7 @@ from tkinter import simpledialog
 # Function to get user input
 def get_user_input():
     root = tk.Tk()
-    root.withdraw()  # Hide the main window
+    root.withdraw()
 
     user_tickers = simpledialog.askstring("Input", "Please enter tickers separated by commas:")
     user_weights = simpledialog.askstring("Input", "Please enter weights separated by commas:")
