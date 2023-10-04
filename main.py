@@ -23,27 +23,24 @@ def get_user_input():
     user_tickers = simpledialog.askstring("Input", "Please enter tickers separated by commas:")
     user_weights = simpledialog.askstring("Input", "Please enter weights separated by commas:")
 
-    tickers = user_tickers.split(",")
-    weights = np.array([float(weight) for weight in user_weights.split(",")])
+    target_tickers = user_tickers.split(",")
+    target_Weights = np.array([float(weight) for weight in user_weights.split(",")])
 
-    return tickers, weights
+    return target_tickers, target_Weights
 
 
 # Function to filter out zero-weighted securities
-def filter_zero_weights(weights, tickers):
-    non_zero_indices = [i for i, weight in enumerate(weights) if weight > 0]
-    filtered_weights = [weights[i] for i in non_zero_indices]
-    filtered_tickers = [tickers[i] for i in non_zero_indices]
-    dropped_tickers = [tickers[i] for i, weight in enumerate(weights) if weight == 0]
+def filter_zero_weights(input_weights, input_Tickers):
+    non_zero_indices = [i for i, weight in enumerate(input_weights) if weight > 0]
+    filtered_weights = [input_weights[i] for i in non_zero_indices]
+    filtered_tickers = [input_Tickers[i] for i in non_zero_indices]
     return filtered_weights, filtered_tickers
 
 
-# Get user input
 tickers, weights = get_user_input()
-
+#  Five years of data for portfolio analysis
 endDate = datetime.today()
 startDate = endDate - timedelta(days=5 * 365)
-
 adj_Close = pd.DataFrame()
 
 for ticker in tickers:
@@ -64,21 +61,19 @@ pot_standDev = np.sqrt(np.dot(weights.T, np.dot(cov_Matrix, weights)))
 # Expected Return
 port_ExpReturn = np.sum(log_Returns.mean() * weights) * 252
 
-# Risk Free Rate
+# Risk Free Rate for last 10 years
 fred = Fred(api_key='2cd2c8f11c41aa57740ed799fb5a5635')
 ten_years_Rates = fred.get_series_latest_release('GS10') / 100
 risk_FreeRate = ten_years_Rates.iloc[-1]
-
-# Sharpe Ratio
 sharpe_ratio = (port_ExpReturn - risk_FreeRate) / pot_standDev
 
 # Portfolio optimization
 mu = expected_returns.mean_historical_return(adj_Close)
 S = risk_models.sample_cov(adj_Close)
-
 # Optimize sharpe ratio
 ef = EfficientFrontier(mu, S)
-# No single security should not more than 50% of the portfolio
+
+# No single security should not more than 50% of the portfolio.
 ef.add_constraint(lambda x: x <= 0.5)
 weights = ef.max_sharpe()
 cleaned_weights = ef.clean_weights()
@@ -91,6 +86,7 @@ print("-------------------------------------------------------------------")
 print("-------------------------------------------------------------------")
 print("Optimized Portfolio")
 print(cleaned_weights)
+
 ef.portfolio_performance(verbose=True)
 portfolio_weights = [cleaned_weights[ticker] for ticker in tickers]
 
