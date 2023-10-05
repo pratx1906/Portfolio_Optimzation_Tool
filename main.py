@@ -1,7 +1,8 @@
-# The aim of this project is to create a user-friendly portfolio optimization tools that utilizes
-# Efficient Frontier theory which is considered to be cornerstone of Modern Portfolio theory. The project also
-# acknowledges the limitations of this approach of optimization.
-
+"""
+The aim of this project is to create a user-friendly portfolio optimization tools that utilizes
+Efficient Frontier theory which is considered to be cornerstone of Modern Portfolio theory. The project also
+acknowledges the limitations of this approach of optimization.
+"""
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
@@ -15,7 +16,7 @@ import tkinter as tk
 from tkinter import simpledialog
 
 
-# Function to get user input
+# Function to get user input. Will be updated with better UI elements and create a search engine
 def get_user_input():
     root = tk.Tk()
     root.withdraw()
@@ -35,6 +36,54 @@ def filter_zero_weights(input_weights, input_Tickers):
     filtered_weights = [input_weights[i] for i in non_zero_indices]
     filtered_tickers = [input_Tickers[i] for i in non_zero_indices]
     return filtered_weights, filtered_tickers
+
+
+'''
+This function calculates the asset weights that maximize the Sharpe Ratio for a given portfolio.
+The optimization ensures that no single asset constitutes more than 50% of the portfolio.
+Utilizes Efficient Frontier from pypfopt.efficient_frontier
+
+Parameters:
+- closePrices (DataFrame): Historical closing prices of assets in the portfolio.
+- risk (float): Risk-free rate used in the Sharpe Ratio calculation.
+
+Returns:
+- dict: Asset weights that maximize the Sharpe Ratio.
+'''
+
+
+def max_SharpeRatio_Optimizer(closePrices, risk):
+    mu = expected_returns.mean_historical_return(closePrices)
+    S = risk_models.sample_cov(closePrices)
+    ef = EfficientFrontier(mu, S, (0, 0.5))
+    results = ef.max_sharpe(risk)
+    ef.portfolio_performance(verbose=True)
+    return results
+
+
+'''
+Function to find the portfolio weights that minimize the portfolio's volatility given the provided historical closing prices.
+
+Parameters:
+    - closePrices (DataFrame): Historical closing prices of the securities in the portfolio.
+    - risk (float): Risk-free rate to be used in the portfolio performance evaluation.
+
+Returns:
+    - results (dict): Optimized portfolio weights that minimize the volatility.
+
+The function first calculates the expected returns and the sample covariance of the provided historical closing prices.
+Using the Efficient Frontier method, it then optimizes the portfolio to minimize its volatility.
+The constraint set is that no single security can occupy more than 50% of the portfolio.
+'''
+
+
+def min_Volatility_Optimizer(closePrices, risk):
+    mu = expected_returns.mean_historical_return(closePrices)
+    S = risk_models.sample_cov(closePrices)
+    ef = EfficientFrontier(mu, S, (0, 0.5))
+    results = ef.min_volatility()
+    ef.portfolio_performance(verbose=True)
+    return results
 
 
 tickers, weights = get_user_input()
@@ -65,18 +114,10 @@ port_ExpReturn = np.sum(log_Returns.mean() * weights) * 252
 fred = Fred(api_key='2cd2c8f11c41aa57740ed799fb5a5635')
 ten_years_Rates = fred.get_series_latest_release('GS10') / 100
 risk_FreeRate = ten_years_Rates.iloc[-1]
+
 sharpe_ratio = (port_ExpReturn - risk_FreeRate) / pot_standDev
 
-# Portfolio optimization
-mu = expected_returns.mean_historical_return(adj_Close)
-S = risk_models.sample_cov(adj_Close)
-# Optimize sharpe ratio
-ef = EfficientFrontier(mu, S)
-
-# No single security should not more than 50% of the portfolio.
-ef.add_constraint(lambda x: x <= 0.5)
-weights = ef.max_sharpe()
-cleaned_weights = ef.clean_weights()
+cleaned_weights = max_SharpeRatio_Optimizer(adj_Close, risk_FreeRate)
 
 print("Current Portfolio Information:")
 print("Expected Return: " + str(round(port_ExpReturn, 4) * 100) + '%')
@@ -87,7 +128,6 @@ print("-------------------------------------------------------------------")
 print("Optimized Portfolio")
 print(cleaned_weights)
 
-ef.portfolio_performance(verbose=True)
 portfolio_weights = [cleaned_weights[ticker] for ticker in tickers]
 
 # Enable interactive mode
@@ -100,18 +140,11 @@ plt.pie(filtered_weights_max_sharpe, labels=filtered_tickers_max_sharpe, autopct
 plt.title('Optimized Portfolio Weights')
 plt.draw()  # Draw the figure but do not block execution
 
-# Optimize for minimal volatility
-ef_min_vol = EfficientFrontier(mu, S)
-# No single security should not more than 50% of the portfolio
-ef_min_vol.add_constraint(lambda x: x <= 0.5)
-min_vol_weights = ef_min_vol.min_volatility()
-cleaned_min_vol_weights = ef_min_vol.clean_weights()
-
 # Get the portfolio performance
-min_vol_perf = ef_min_vol.portfolio_performance(verbose=True)
+min_vol_perf = min_Volatility_Optimizer(adj_Close, risk_FreeRate)
 
 # Get the asset weights for the minimal volatility portfolio
-min_vol_portfolio_weights = [cleaned_min_vol_weights[ticker] for ticker in tickers]
+min_vol_portfolio_weights = [min_vol_perf[ticker] for ticker in tickers]
 
 # Create a new figure for the minimal volatility portfolio
 filtered_weights_min_vol, filtered_tickers_min_vol = filter_zero_weights(min_vol_portfolio_weights, tickers)
