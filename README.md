@@ -1,4 +1,4 @@
-# Portfolio_Optimzation_Tool
+# Portfolio_Optimization_Tool
 Portfolio Optimization and Stock Price Predictor
 This project focuses on the intersection of finance and data science to create user-friendly portfolio optimization tools. The primary approach is based on the Efficient Frontier theory, a cornerstone of Modern Portfolio Theory. The project further aims to acknowledge the limitations of this traditional optimization approach.
 

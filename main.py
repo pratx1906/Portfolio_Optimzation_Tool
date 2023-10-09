@@ -2,6 +2,7 @@
 The aim of this project is to create a user-friendly portfolio optimization tools that utilizes
 Efficient Frontier theory which is considered to be cornerstone of Modern Portfolio theory. The project also
 acknowledges the limitations of this approach of optimization.
+@author Pratyush Dixit
 """
 import pandas as pd
 import numpy as np
