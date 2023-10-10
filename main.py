@@ -8,13 +8,23 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 import yfinance as yf
+from fredapi import Fred
 from pypfopt.efficient_frontier import EfficientFrontier
 from pypfopt import risk_models
 from pypfopt import expected_returns
 import matplotlib.pyplot as plt
-from fredapi import Fred
 import tkinter as tk
 from tkinter import simpledialog
+
+from Forecasting import Forecasting
+
+
+def ForecastIndividualStocks(tickers):
+    for ticker in tickers:
+        forecaster = Forecasting(ticker)
+        print(f"Forecasting for {ticker}...")
+        _, forecast_series = forecaster.forecast(datetime.today())
+        forecaster.plot_prediction(ticker, datetime.today())
 
 
 # Function to get user input. Will be updated with better UI elements and create a search engine
@@ -113,8 +123,11 @@ port_ExpReturn = np.sum(log_Returns.mean() * weights) * 252
 
 # Risk Free Rate for last 10 years
 fred = Fred(api_key='2cd2c8f11c41aa57740ed799fb5a5635')
-ten_years_Rates = fred.get_series_latest_release('GS10') / 100
-risk_FreeRate = ten_years_Rates.iloc[-1]
+try:
+    ten_years_Rates = fred.get_series_latest_release('GS10') / 100
+    risk_FreeRate = ten_years_Rates.iloc[-1]
+except Exception as e:
+    risk_FreeRate = 0.045
 
 sharpe_ratio = (port_ExpReturn - risk_FreeRate) / pot_standDev
 
@@ -154,5 +167,8 @@ plt.pie(filtered_weights_min_vol, labels=filtered_tickers_min_vol, autopct='%1.1
 plt.title('Minimal Volatility Portfolio Weights')
 plt.draw()  # Draw the figure but do not block execution
 
+print("Forecasting for the optimized portfolio for the next 6 months...")
+
+ForecastIndividualStocks(filtered_tickers_max_sharpe)
 # Wait for the user to close the plots
 plt.show(block=True)  # Now block execution
