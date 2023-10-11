@@ -1,5 +1,4 @@
-# Portfolio_Optimization_Tool
-Portfolio Optimization and Forecasting
+#Portfolio Optimization and Forecasting
 Overview
 This project aims to create user-friendly portfolio optimization tools that harness the Efficient Frontier theory, a cornerstone of the Modern Portfolio Theory. By doing so, the project offers an innovative way to make investment decisions by maximizing returns for a given level of risk. In addition to optimization, the tool offers forecasting capabilities for individual stock prices using the ARIMA model.
 
@@ -48,4 +47,5 @@ The project acknowledges the inherent limitations of using the Efficient Frontie
 
 Author
 Pratyush Dixit
+
 
