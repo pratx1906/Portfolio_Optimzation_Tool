@@ -27,6 +27,14 @@ def ForecastIndividualStocks(tickers):
         forecaster.plot_prediction(ticker, datetime.today())
 
 
+def ask_user_forecasting():
+    """Asks the user if they want to proceed with forecasting."""
+    root = tk.Tk()
+    root.withdraw()
+    answer = tk.messagebox.askyesno("Forecasting", "Would you like to proceed with forecasting?")
+    return answer
+
+
 # Function to get user input. Will be updated with better UI elements and create a search engine
 def get_user_input():
     root = tk.Tk()
@@ -167,8 +175,8 @@ plt.pie(filtered_weights_min_vol, labels=filtered_tickers_min_vol, autopct='%1.1
 plt.title('Minimal Volatility Portfolio Weights')
 plt.draw()  # Draw the figure but do not block execution
 
-print("Forecasting for the optimized portfolio for the next 6 months...")
-
-ForecastIndividualStocks(filtered_tickers_max_sharpe)
+if ask_user_forecasting():
+    print("Forecasting for the optimized portfolio for the next 6 months...")
+    ForecastIndividualStocks(filtered_tickers_max_sharpe)
 # Wait for the user to close the plots
 plt.show(block=True)  # Now block execution
